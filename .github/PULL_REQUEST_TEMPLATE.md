@@ -1,16 +1,18 @@
-<!-- Thank you for your contribution! -->
+<!-- 感谢你的贡献! -->
 
-## Change Summary
+## 变更摘要
 
-<!-- Please give a short summary of the changes. -->
+<!-- 请简要描述本次 PR 的核心改动（比如「修复 code_agent 模块的参数解析错误」「新增部署文档」） -->
 
-## Related issue number
+## 关联 Issue 编号
 
-<!-- WARNING: please use "fix #123" style references so the issue is closed when this PR is merged. -->
+<!-- 注意：请用「fix #123」「ref #456」格式关联 Issue，PR 合并后会自动关闭对应的 Issue -->
 
-## Checklist
+## 检查清单
 
-* [ ] The pull request title is a good summary of the changes - it will be used in the changelog
-* [ ] Unit tests for the changes exist
-* [ ] Run `pre-commit install` and `pre-commit run --all-files` before git commit, and passed lint check.
-* [ ] Documentation reflects the changes where applicable
+请确认以下项已完成（勾选对应方框）
+
+* [ ] PR 标题能清晰概括变更（标题会用于项目更新日志）
+* [ ] 为本次变更编写了单元测试
+* [ ] 提交代码前执行了 `pre-commit install` 和 `pre-commit run --all-files`，并通过了代码检查
+* [ ] 若变更涉及功能/使用方式，相关文档（README、docs 等）已同步更新
