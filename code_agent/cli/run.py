@@ -5,7 +5,8 @@ import os
 
 from code_agent.config import Config
 from code_agent.utils import strtobool
-from code_agent.utils.constants import AGENT_CONFIG_FILE
+from code_agent.utils.constants import (AGENT_CONFIG_FILE, DEFAULT_YAML,
+                                        WORKFLOW_CONFIG_FILE)
 
 from .base import CLICommand
 
@@ -30,15 +31,19 @@ class RunCMD(CLICommand):
             '--query',
             required=False,
             type=str,
-            help=
-            'The query or prompt to send to the LLM. If not set, will enter an interactive mode.'
-        )
+            help=(
+                'The query or prompt to send to the LLM. '
+                'If not set, will enter an interactive mode.'
+            ))
         parser.add_argument(
             '--config',
             required=False,
             type=str,
             default=None,
-            help='The directory or the repo id of the config file')
+            help=('The directory, local yaml file, or the repo id of the '
+                  'config file. If omitted, CodeAgent will first look for '
+                  '`agent.yaml` or `workflow.yaml` in the current directory, '
+                  'then fall back to the built-in simple agent task.'))
         parser.add_argument(
             '--trust_remote_code',
             required=False,
@@ -50,9 +55,9 @@ class RunCMD(CLICommand):
             required=False,
             type=str,
             default='false',
-            help=
-            'Load previous step histories from cache, this is useful when a query fails and retry'
-        )
+            help=(
+                'Load previous step histories from cache, this is useful when '
+                'a query fails and retry'))
         parser.add_argument(
             '--mcp_config',
             required=False,
@@ -83,19 +88,39 @@ class RunCMD(CLICommand):
             type=str,
             choices=['auto', 'human'],
             default=None,
-            help=
-            'Animation mode for video_generate project: auto (default) or human.'
-        )
+            help=(
+                'Animation mode for video_generate project: '
+                'auto (default) or human.'))
         parser.set_defaults(func=subparser_func)
 
+    def _resolve_default_config(self) -> str:
+        """Return a reasonable default config path or repo id.
+
+        Resolution order when ``--config`` is not provided:
+
+        1. ``./agent.yaml`` in the current working directory.
+        2. ``./workflow.yaml`` in the current working directory.
+        3. Built-in simple agent task id defined by ``DEFAULT_YAML``
+           (will be downloaded via ``modelscope.snapshot_download``).
+        """
+        current_dir = os.getcwd()
+        # Prefer a local agent.yaml if present
+        for filename in (AGENT_CONFIG_FILE, WORKFLOW_CONFIG_FILE):
+            candidate = os.path.join(current_dir, filename)
+            if os.path.exists(candidate):
+                return candidate
+        # Fallback to default remote/simple task id
+        return DEFAULT_YAML
+
     def execute(self):
+        # Resolve config if user did not provide one explicitly
         if not self.args.config:
-            current_dir = os.getcwd()
-            if os.path.exists(os.path.join(current_dir, AGENT_CONFIG_FILE)):
-                self.args.config = os.path.join(current_dir, AGENT_CONFIG_FILE)
+            self.args.config = self._resolve_default_config()
         elif not os.path.exists(self.args.config):
+            # Treat non-existing paths as remote repo ids
             from modelscope import snapshot_download
             self.args.config = snapshot_download(self.args.config)
+
         self.args.trust_remote_code = strtobool(
             self.args.trust_remote_code)  # noqa
         self.args.load_cache = strtobool(self.args.load_cache)
